@@ -1,0 +1,100 @@
+name: Build Application
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+          
+      - name: Build with Maven
+        run: mvn clean package
+        
+      - name: Create Windows Package
+        run: |
+          jpackage --input target/ `
+          --main-jar RequestToolV2.jar `
+          --main-class com.esmooc.RequestToolV2 `
+          --type exe `
+          --name RequestToolV2 `
+          --app-version "1.0.0" `
+          --vendor "esmooc" `
+          --win-dir-chooser `
+          --win-shortcut `
+          --win-menu
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: RequestToolV2-windows
+          path: RequestToolV2*.exe
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+          
+      - name: Build with Maven
+        run: mvn clean package
+        
+      - name: Install Required Dependencies
+        run: sudo apt-get update && sudo apt-get install -y fakeroot
+
+      - name: Create Linux Package
+        run: |
+          jpackage --input target/ \
+          --main-jar RequestToolV2.jar \
+          --main-class com.esmooc.RequestToolV2 \
+          --type deb \
+          --name RequestToolV2 \
+          --app-version "1.0.0" \
+          --vendor "esmooc" \
+          --linux-shortcut
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: RequestToolV2-linux
+          path: RequestToolV2*.deb
+
+  create-release:
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: RequestToolV2-windows
+          
+      - uses: actions/download-artifact@v3
+        with:
+          name: RequestToolV2-linux
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            RequestToolV2*.exe
+            RequestToolV2*.deb
+          tag_name: v${{ github.run_number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
