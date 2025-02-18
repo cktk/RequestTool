@@ -28,7 +28,7 @@ jobs:
           --main-jar RequestTool-1.0-SNAPSHOT.jar `
           --main-class com.esmooc.RequestToolV2 `
           --type exe `
-          --name RequestToolV2 `
+          --name RequestTool `
           --app-version "1.0.0" `
           --vendor "esmooc" `
           --win-dir-chooser `
@@ -38,8 +38,8 @@ jobs:
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
-          name: RequestToolV2-windows
-          path: RequestToolV2*.exe
+          name: RequestTool-windows
+          path: RequestTool*.exe
 
   build-linux:
     runs-on: ubuntu-latest
@@ -65,7 +65,7 @@ jobs:
           --main-jar RequestTool-1.0-SNAPSHOT.jar \
           --main-class com.esmooc.RequestToolV2 \
           --type deb \
-          --name RequestToolV2 \
+          --name RequestTool \
           --app-version "1.0.0" \
           --vendor "esmooc" \
           --linux-shortcut
@@ -73,8 +73,8 @@ jobs:
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
-          name: RequestToolV2-linux
-          path: RequestToolV2*.deb
+          name: RequestTool-linux
+          path: RequestTool*.deb
 
   create-release:
     needs: [build-windows, build-linux]
@@ -83,11 +83,13 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: RequestToolV2-windows
+          name: RequestTool-windows
+          path: windows
           
       - uses: actions/download-artifact@v4
         with:
-          name: RequestToolV2-linux
+          name: RequestTool-linux
+          path: linux
 
       - name: Create Release
         id: create_release
@@ -106,8 +108,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./RequestToolV2.exe
-          asset_name: RequestToolV2-windows.exe
+          asset_path: ./windows/RequestTool.exe
+          asset_name: RequestTool-windows.exe
           asset_content_type: application/octet-stream
 
       - name: Upload Linux Release Asset
@@ -116,6 +118,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./RequestToolV2.deb
-          asset_name: RequestToolV2-linux.deb
+          asset_path: ./linux/RequestTool.deb
+          asset_name: RequestTool-linux.deb
           asset_content_type: application/octet-stream 
