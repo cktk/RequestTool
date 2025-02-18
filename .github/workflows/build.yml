@@ -1,12 +1,4 @@
-# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-name: java-Swing-GUI Build Windows & Linux
+name: Build Application
 
 on:
   push:
@@ -19,17 +11,17 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
-
+      
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-
+          
       - name: Build with Maven
         run: mvn clean package
-
+        
       - name: Create Windows Package
         run: |
           jpackage --input target/ `
@@ -53,17 +45,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
+      
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-
+          
       - name: Build with Maven
         run: mvn clean package
-
+        
       - name: Install Required Dependencies
         run: sudo apt-get update && sudo apt-get install -y fakeroot
 
@@ -92,17 +84,38 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: RequestToolV2-windows
-
+          
       - uses: actions/download-artifact@v3
         with:
           name: RequestToolV2-linux
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            RequestToolV2*.exe
-            RequestToolV2*.deb
-          tag_name: v${{ github.run_number }}
+        id: create_release
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Windows Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./RequestToolV2.exe
+          asset_name: RequestToolV2-windows.exe
+          asset_content_type: application/octet-stream
+
+      - name: Upload Linux Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./RequestToolV2.deb
+          asset_name: RequestToolV2-linux.deb
+          asset_content_type: application/octet-stream 
