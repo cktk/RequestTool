@@ -6,30 +6,30 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Java CI with Maven
+name: java-Swing-GUI Build Windows & Linux
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
   build-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-          
+
       - name: Build with Maven
         run: mvn clean package
-        
+
       - name: Create Windows Package
         run: |
           jpackage --input target/ `
@@ -53,17 +53,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-          
+
       - name: Build with Maven
         run: mvn clean package
-        
+
       - name: Install Required Dependencies
         run: sudo apt-get update && sudo apt-get install -y fakeroot
 
@@ -92,7 +92,7 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: RequestToolV2-windows
-          
+
       - uses: actions/download-artifact@v3
         with:
           name: RequestToolV2-linux
@@ -105,4 +105,4 @@ jobs:
             RequestToolV2*.deb
           tag_name: v${{ github.run_number }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
