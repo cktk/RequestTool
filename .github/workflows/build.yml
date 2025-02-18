@@ -1,0 +1,32 @@
+name: Build Application
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up JDK
+      uses: actions/setup-java@v2
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Build with Maven
+      run: mvn clean package
+      
+    - name: Create Windows executable
+      run: |
+        jpackage --input target/ --main-jar RequestTool-1.0-SNAPSHOT.jar --main-class com.esmooc.RequestToolV2 --name RequestTool --type app-image
+        
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: RequestTool-windows
+        path: RequestTool 
